@@ -7,6 +7,6 @@
 
 # Overview
 
-**Goal.** to consolidate in one repository recurrent routines that we may use for model diagnostics, primarily Bayesian models.
+**Goal.** to consolidate in one repository recurrent routines that we may use for model diagnostics, primarily Bayesian models. Please pay attention to the need for any new packages. If new packages are needed, list them under R/`packages.R`.
 
 **Structure.** As much as possible, please generalise the code and store standalone functions in the `R` folder. Then place examples in the root directory.
