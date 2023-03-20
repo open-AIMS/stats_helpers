@@ -28,10 +28,18 @@ a / b
 gaus_mod_glmmTMB <- glmmTMB::glmmTMB(
   observedResponse ~ 1 + (1 | group), family = gaussian(), data = dat
 )
-DHARMa::simulateResiduals(gaus_mod_glmmTMB) |> plot()
+glmmTMB_dharma_res <- DHARMa::simulateResiduals(gaus_mod_glmmTMB)
+plot(glmmTMB_dharma_res)
+a <- gg_dharma(glmmTMB_dharma_res, form = factor(rep(1, nrow(dat))))
+b <- gg_disp_hist(glmmTMB_dharma_res)
+a / b
 
 ## glmmTMB
 gaus_mod_lme4 <- lme4::lmer(
   observedResponse ~ 1 + (1 | group), data = dat
 )
-DHARMa::simulateResiduals(gaus_mod_lme4, use.u = FALSE) |> plot()
+lmer_dharma_res <- DHARMa::simulateResiduals(gaus_mod_lme4, use.u = FALSE)
+plot(lmer_dharma_res)
+a <- gg_dharma(lmer_dharma_res, form = factor(rep(1, nrow(dat))))
+b <- gg_disp_hist(lmer_dharma_res)
+a / b
