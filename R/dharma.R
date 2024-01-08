@@ -336,8 +336,9 @@ gg_disp_hist <- function(sim_list, alternative = c("two.sided", "greater",
             plot.subtitle = element_text(size = 9))
 }
 
-gg_dharma <- function(x, ...) {
+gg_dharma <- function(x, title = "DHARMa residual diagnostics", ...) {
+  require(patchwork)
   a_ <- plot_qq_unif(x)
   b_ <- plot_residuals(x, ...)
-  a_ + b_ + patchwork::plot_annotation(title = "DHARMa residual diagnostics")
+  a_ + b_ + patchwork::plot_annotation(title = title)
 }
