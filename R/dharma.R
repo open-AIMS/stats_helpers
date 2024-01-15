@@ -376,7 +376,7 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
       linetype = "longdash"
     ) + 
     labs(
-      title = "DHARMa zero-inflation test",
+      title = "DHARMa non-parametric zero-inflation test",
       subtitle = subtitle,
       y = "Frequency", 
       x = "Number of zeros in simulated data\n(observed number of zeros shown as red dashed line)"
