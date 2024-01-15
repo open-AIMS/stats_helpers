@@ -336,7 +336,7 @@ gg_disp_hist <- function(sim_list, alternative = c("two.sided", "greater",
             plot.subtitle = element_text(size = 9))
 }
 
-gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "greater", "less"), plot = T) {
+gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "greater", "less")) {
   require(ggplot2)
   require(stringr)
   require(DHARMa)
