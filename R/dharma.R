@@ -365,7 +365,7 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
     ") from the fitted model.\n", alt_formatted, " p-value = ", signif(p, 3), 
     " for H0: fitted model is a reasonable representation of the Y = 0 data generating process."
   )
-  if(!is.null(wrap_subtitle)) subtitle <- > stringr::str_wrap(subtitle, wrap_subtitle)
+  if(!is.null(wrap_subtitle)) subtitle <- stringr::str_wrap(subtitle, wrap_subtitle)
   data.frame(simulated) |> 
     ggplot(aes(simulated)) + 
     geom_histogram(bins = nbins, fill = "black") + 
