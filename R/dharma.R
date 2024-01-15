@@ -336,7 +336,7 @@ gg_disp_hist <- function(sim_list, alternative = c("two.sided", "greater",
             plot.subtitle = element_text(size = 9))
 }
 
-gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "greater", "less")) {
+gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "greater", "less"), wrap_subtitle = NULL) {
 # ZERO INFLATION is a property of the model, not the data. It occurs when the model does not appropriately capture the data-generating process leading to the number of zeros in the observed data. This test considers the distribution of the number of zeros in many simulations of data from the fitted model. If the number of zeros in the observed data does not conform to the distribution of zeros from simulated datasets, we have evidence of zero-inflation (i.e. the fitted model is misspecified). This test is likely better suited for detecting zero-inflation than the standard DHARMa residual/QQ plots, but note that overdispersion can also lead to excess zeros. Therefore, seeing too many zeros is not a reliable diagnostics for moving towards a zero-inflated model. A reliable differentiation between overdispersion and zero-inflation will usually only be possible when directly comparing alternative models (e.g. through residual comparison/model selection of a model with and without zero-inflation, or by simply fitting a model with zero-inflation and looking at the parameter estimate for the zero-inflation)
   require(ggplot2)
   require(stringr)
@@ -355,6 +355,13 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
     stringr::str_replace("\\.", "-") |> 
     stringr::str_to_sentence()
   alt_formatted <- ifelse(alternative == "two.sided", alt_formatted, paste0("One-sided (", alternative, ")"))
+  subtitle <- paste0(
+    "Number of zeros in observed data versus in ", sim_list$nSim, 
+    " simulations of equivalent sample size (n = ", sim_list$nObs, 
+    ") from the fitted model.\n", alt_formatted, " p-value = ", signif(p, 3), 
+    " for H0: fitted model is a reasonable representation of the Y = 0 data generating process."
+  )
+  if(!is.null(wrap_subtitle)) subtitle <- > stringr::str_wrap(subtitle, wrap_subtitle)
   data.frame(simulated) |> 
     ggplot(aes(simulated)) + 
     geom_histogram(bins = nbins, fill = "black") + 
@@ -366,9 +373,7 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
     ) + 
     labs(
       title = "DHARMa zero-inflation test",
-      subtitle = paste0(
-        "Number of zeros in observed data versus in ", sim_list$nSim, " simulations of equivalent sample size (n = ", sim_list$nObs, ") from the fitted model\n", alt_formatted, " p-value = ", signif(p, 3), " for H0: fitted model is a reasonable representation of the Y = 0 data generating process"
-      ),
+      subtitle = subtitle,
       y = "Frequency", 
       x = "Number of zeros in simulated data\n(observed number of zeros shown as red dashed line)"
     ) 
