@@ -337,9 +337,14 @@ gg_disp_hist <- function(sim_list, alternative = c("two.sided", "greater",
 }
 
 gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "greater", "less")) {
+# ZERO INFLATION is a property of the model, not the data. It occurs when the model does not appropriately capture the data-generating process leading to the number of zeros in the observed data. This test considers the distribution of the number of zeros in many simulations of data from the fitted model. If the number of zeros in the observed data does not conform to the distribution of zeros from simulated datasets, we have evidence of zero-inflation (i.e. the fitted model is misspecified). This test is likely better suited for detecting zero-inflation than the standard DHARMa residual/QQ plots, but note that overdispersion can also lead to excess zeros. Therefore, seeing too many zeros is not a reliable diagnostics for moving towards a zero-inflated model. A reliable differentiation between overdispersion and zero-inflation will usually only be possible when directly comparing alternative models (e.g. through residual comparison/model selection of a model with and without zero-inflation, or by simply fitting a model with zero-inflation and looking at the parameter estimate for the zero-inflation)
   require(ggplot2)
   require(stringr)
   require(DHARMa)
+  if (length(alternative) == 3) {
+    warning("`alternative` argument not provided, using `alternative = 'two.sided'`")
+    alternative <- "two.sided"
+  }
   count_zeros <- function(x) sum(x == 0)
   sim_list <- ensure_dharma(sim_list, convert = "Model")
   observed <- count_zeros(sim_list$observedResponse)
@@ -349,23 +354,23 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
   alt_formatted <- alternative |> 
     stringr::str_replace("\\.", "-") |> 
     stringr::str_to_sentence()
-  message("ZERO INFLATION is a property of the model, not the data. It occurs when the model does not appropriately capture the data-generating process leading to the number of zeros in the observed data. This test considers the distribution of the number of zeros in many simulations of data from the fitted model. If the number of zeros in the observed data does not conform to the distribution of simulated datasets, we have evidence of zero-inflation (i.e. the fitted model is misspecified). This test is likely better suited for detecting zero-inflation than the standard DHARMa residual/QQ plots, but note that overdispersion can also lead to excess zeros. Therefore, seeing too many zeros is not a reliable diagnostics for moving towards a zero-inflated model. A reliable differentiation between overdispersion and zero-inflation will usually only be possible when directly comparing alternative models (e.g. through residual comparison/model selection of a model with and without zero-inflation, or by simply fitting a model with zero-inflation and looking at the parameter estimate for the zero-inflation)")
+  alt_formatted <- ifelse(alternative == "two.sided", alt_formatted, paste0("One-sided (", alternative, ")"))
   data.frame(simulated) |> 
     ggplot(aes(simulated)) + 
     geom_histogram(bins = nbins, fill = "black") + 
     geom_vline(
       xintercept = observed, 
       color = "red", 
-      size = 2.5, 
+      size = 1.5, 
       linetype = "longdash"
     ) + 
     labs(
       title = "DHARMa zero-inflation test",
       subtitle = paste0(
-        "Number of zeros in observed data versus in ", sim_list$nSim, " simulations of equivalent sample size (n = ", sim_list$nObs, ") from the fitted model\n", alt_formatted, " p-value = ", signif(p, 3), " for H0 (fitted model is a reasonable representation of the Y = 0 data generating process)"
+        "Number of zeros in observed data versus in ", sim_list$nSim, " simulations of equivalent sample size (n = ", sim_list$nObs, ") from the fitted model\n", alt_formatted, " p-value = ", signif(p, 3), " for H0: fitted model is a reasonable representation of the Y = 0 data generating process"
       ),
       y = "Frequency", 
-      x = "Number of zeros in simulated data\n(observed number of zeros shown as red dashed line"
+      x = "Number of zeros in simulated data\n(observed number of zeros shown as red dashed line)"
     ) 
 }
 
