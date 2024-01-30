@@ -336,6 +336,50 @@ gg_disp_hist <- function(sim_list, alternative = c("two.sided", "greater",
             plot.subtitle = element_text(size = 9))
 }
 
+# Brendans edited dispersion histogram function (included cutoff_hdci so that we can still see the distribution of simulated values when the spread is very large but the vast majority of values is continaed in a small range)
+gg_dispersion_hist <- function(
+  sim_list, 
+  alternative = c("two.sided", "greater", "less"), 
+  cutoff_hdci = NULL,  # Only plot simulated values within the specified highest continuous density interval (HDCI); decimal between 0 and 1, e.g. cutoff_hdci = 0.99 plots simulated values within the 99% HDCI. 
+  wrap_subtitle = NULL # Integer; if specified, lines will be wrapped to the given number of characters
+) {
+  sim_list <- ensure_dharma(sim_list, convert = "Model")
+  expected_var <- sd(sim_list$simulatedResponse) ^ 2
+  spread <- function(x, sim_list, expected_var) {
+    var(x - sim_list$fittedPredictedResponse) / expected_var
+  }
+  alternative <- match.arg(alternative)
+  observed <- spread(sim_list$observedResponse, sim_list, expected_var)
+  simulated <- apply(sim_list$simulatedResponse, 2, spread, sim_list, expected_var)
+  p_val_ <- get_p_val(simulated = simulated, observed = observed, alternative = alternative)
+  x_lab_ <- paste0("Simulated values, red line = fitted model. p-value (", alternative, ") = ", p_val_)
+  subtitle <- "Fitted vs. Simulated"
+  if (!is.null(cutoff_hdci)) {
+    cutoff_vals <- ggdist::hdci(simulated, .width = cutoff_hdci)
+    simulated <- simulated[simulated > cutoff_vals[1] & 
+      simulated < cutoff_vals[2]]
+    subtitle <- paste0(subtitle, ". Only showing simulated values within the ", cutoff_hdci*100, "% highest continuous density interval (HDCI).")
+  }
+  if(!is.null(wrap_subtitle)) subtitle <- stringr::str_wrap(subtitle, wrap_subtitle)
+  nbins <- max(floor(length(simulated)/5), 20)  
+  simulated |> 
+    data.frame() |> 
+    ggplot(aes(simulated)) +
+    geom_histogram(color = "black", fill = "black", bins = nbins) +
+    geom_vline(
+      xintercept = observed, 
+      colour = "red",
+      linetype = "longdash", 
+      linewidth = 0.8
+    ) +
+    labs(
+      x = x_lab_, 
+      y = "", 
+      title = "DHARMa nonparametric dispersion test via sd of residuals", 
+      subtitle = subtitle
+    )
+}
+
 gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "greater", "less"), wrap_subtitle = NULL) {
 # NOTES: Zero inflation is a property of the model, not the data. It occurs when the model does not appropriately capture the data-generating process leading to the number of zeros in the observed data. This test considers the distribution of the number of zeros in many simulations of data from the fitted model. If the number of zeros in the observed data does not conform to the distribution of zeros from simulated datasets, we have evidence of zero-inflation (i.e. the fitted model is misspecified). This test is likely better suited for detecting zero-inflation than the standard DHARMa residual/QQ plots, but note that overdispersion can also lead to excess zeros. Therefore, seeing too many zeros is not a reliable diagnostics for moving towards a zero-inflated model. A reliable differentiation between overdispersion and zero-inflation will usually only be possible when directly comparing alternative models (e.g. through residual comparison/model selection of a model with and without zero-inflation, or by simply fitting a model with zero-inflation and looking at the parameter estimate for the zero-inflation)
 # ARGUMENTS: 
@@ -346,7 +390,7 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
   require(stringr)
   require(DHARMa)
   if (length(alternative) == 3) {
-    warning("`alternative` argument not provided, using `alternative = 'two.sided'`")
+    message("`alternative` argument not provided, using `alternative = 'two.sided'`")
     alternative <- "two.sided"
   }
   count_zeros <- function(x) sum(x == 0)
@@ -354,7 +398,7 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
   observed <- count_zeros(sim_list$observedResponse)
   simulated <- apply(sim_list$simulatedResponse, 2, count_zeros)
   p <- get_p_val(simulated = simulated, observed = observed, alternative = alternative)
-  nbins <- max(round(sim_list$nSim/5), 20)
+  nbins <- max(length(unique(simulated)), 20)
   alt_formatted <- alternative |> 
     stringr::str_replace("\\.", "-") |> 
     stringr::str_to_sentence()
@@ -372,8 +416,8 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
     geom_vline(
       xintercept = observed, 
       color = "red", 
-      size = 1.5, 
-      linetype = "longdash"
+      linetype = "longdash", 
+      linewidth = 0.8
     ) + 
     labs(
       title = "DHARMa non-parametric zero-inflation test",
