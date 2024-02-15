@@ -1,0 +1,16 @@
+# folders
+pdfs/
+output/
+ignore/
+
+.DS_Store
+*.Rapp.history
+*.Rhistory
+*.RData
+*.Rproj
+*.zip
+*tmp*
+*.rda
+*.rds
+TODO.md
+*~$*
