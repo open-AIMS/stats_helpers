@@ -398,7 +398,6 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
   observed <- count_zeros(sim_list$observedResponse)
   simulated <- apply(sim_list$simulatedResponse, 2, count_zeros)
   p <- get_p_val(simulated = simulated, observed = observed, alternative = alternative)
-  # nbins <- max(length(unique(simulated)), 20)
   alt_formatted <- alternative |> 
     stringr::str_replace("\\.", "-") |> 
     stringr::str_to_sentence()
@@ -413,7 +412,7 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
   data.frame(simulated) |> 
     ggplot(aes(simulated)) + 
     geom_histogram(
-      # bins = nbins, 
+      stat = "count",
       binwidth = 1,
       fill = "black"
     ) + 
@@ -428,7 +427,7 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
       subtitle = subtitle,
       y = "Frequency", 
       x = "Number of zeros in simulated data\n(observed number of zeros shown as red dashed line)"
-    ) 
+    )
 }
 
 gg_dharma <- function(x, title = "DHARMa residual diagnostics", ...) {
