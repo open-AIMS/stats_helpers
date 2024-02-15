@@ -398,7 +398,7 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
   observed <- count_zeros(sim_list$observedResponse)
   simulated <- apply(sim_list$simulatedResponse, 2, count_zeros)
   p <- get_p_val(simulated = simulated, observed = observed, alternative = alternative)
-  nbins <- max(length(unique(simulated)), 20)
+  # nbins <- max(length(unique(simulated)), 20)
   alt_formatted <- alternative |> 
     stringr::str_replace("\\.", "-") |> 
     stringr::str_to_sentence()
@@ -412,7 +412,11 @@ gg_zero_inflation_hist <- function(sim_list, alternative = c("two.sided", "great
   if(!is.null(wrap_subtitle)) subtitle <- stringr::str_wrap(subtitle, wrap_subtitle)
   data.frame(simulated) |> 
     ggplot(aes(simulated)) + 
-    geom_histogram(bins = nbins, fill = "black") + 
+    geom_histogram(
+      # bins = nbins, 
+      binwidth = 1,
+      fill = "black"
+    ) + 
     geom_vline(
       xintercept = observed, 
       color = "red", 
